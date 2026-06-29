@@ -27,20 +27,25 @@ float costfunc(int length, float parameter){
 		d=y-prediction;
 		cost+= d*d;	
 	}
-	
+	//MSE
 	cost=cost/length;
 	return cost;
 }
 int main(void){
-	srand(69);
-	//float parameter=randfloat()*10.0f;
-	float parameter=1.0f;
+	srand(99);
+	float parameter=randfloat()*10.0f;
+	//float parameter=1.0f;
 	int length=sizeof(matrix)/sizeof matrix[0];
 	float ep=1e-3;
-	for (int j=0;j<5100;j++){
-	parameter-=ep;
-	}
-	float cost=costfunc(length,parameter);
+	float lrate=1e-3;
+	float cost= 0.0f;
+	do{
+		//deravative cause we wanna know where the cost value decreases
+    float diravtive = (costfunc(length, parameter + ep) - costfunc(length, parameter)) / ep;
+	// - cause we found out thats how cost decreases and we add the deravative to it
+    parameter -= lrate * diravtive;
+    cost = costfunc(length, parameter);
+	}while(cost>0.3f);
 	printf("cost:%f \n",cost);
 	printf("param:%f \n",parameter);
 	return 0;
