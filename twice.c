@@ -37,16 +37,19 @@ int main(void){
 	//float parameter=1.0f;
 	int length=sizeof(matrix)/sizeof matrix[0];
 	float ep=1e-3;
+	float bais=1e-4;
 	float lrate=1e-3;
 	float cost= 0.0f;
 	do{
-		//deravative cause we wanna know where the cost value decreases
+	//deravative cause we wanna know where the cost value decreases
     float diravtive = (costfunc(length, parameter + ep) - costfunc(length, parameter)) / ep;
-	// - cause we found out thats how cost decreases and we add the deravative to it
-    parameter -= lrate * diravtive;
+    float baisdir = (costfunc(length, parameter + bais) - costfunc(length, parameter)) / ep;
+	// we are reducing the direction it gives us
+    parameter -= lrate * diravtive*baisdir;
     cost = costfunc(length, parameter);
 	}while(cost>0.3f);
 	printf("cost:%f \n",cost);
+	printf("bais:%f \n",bais);
 	printf("param:%f \n",parameter);
 	return 0;
 }
