@@ -1,6 +1,8 @@
 package main
 
-import "fmt"
+import( 
+	"fmt"
+)
 
 type Value struct {
 	Data       float64
@@ -87,13 +89,70 @@ func (v *Value) printNode(depth int) {
 	}
 }
 
-func main() {
-	a := NewValue(3.0)
-	b := NewValue(3.0)
-	c := a.Add(b)
-	e := NewValue(3.0)
-	f := c.Mul(e)
+//func main() {
+//	a := NewValue(3.0)
+//	b := NewValue(3.0)
+//	c := a.Add(b)
+//	e := NewValue(3.0)
+//	f := c.Mul(e)
+//
+//	f.backward()
+//	f.PrettyPrint()
+//}
+//
 
-	f.backward()
-	f.PrettyPrint()
+
+// mainloop
+
+func main() {
+	// tiny dataset: 3 inputs -> 1 target, want the net to fit these points
+	xs := [][]float64{
+		{2, 3, -1},
+		{3, -1, 0.5},
+		{0.5, 1, 1},
+		{1, 1, -1},
+	}
+	ys := []float64{1, -1, -1, 1}
+
+	net := NewMLP(3, []int{4, 4, 1})
+	learningRate := 0.001
+
+	for epoch := 0; epoch < 200; epoch++ {
+		// forward pass over the whole dataset, accumulate squared error
+		loss := NewValue(0.0)
+		for i, xrow := range xs {
+			x := make([]*Value, len(xrow))
+			for j, xi := range xrow {
+				x[j] = NewValue(xi)
+			}
+			pred := net.Forward(x)[0]
+			target := NewValue(ys[i])
+			diff := pred.Add(target.Mul(NewValue(-1))) // pred - target (no Sub op, so *-1 then Add)
+			loss = loss.Add(diff.Mul(diff))             // loss += diff^2
+		}
+
+		for _, p := range net.Parameters() {
+			p.Grad = 0 // zero gradients before each backward pass
+		}
+		loss.backward()
+
+		for _, p := range net.Parameters() {
+			p.Data -= learningRate * p.Grad // gradient descent step
+		}
+
+		if epoch%20 == 0 {
+			fmt.Printf("epoch %3d  loss=%.4f\n", epoch, loss.Data)
+		}
+	}
+
+	fmt.Println("\nfinal predictions:")
+	for i, xrow := range xs {
+		x := make([]*Value, len(xrow))
+		for j, xi := range xrow {
+			x[j] = NewValue(xi)
+		}
+		pred := net.Forward(x)[0]
+		fmt.Printf("  input=%v  target=%.1f  pred=%.4f\n", xrow, ys[i], pred.Data)
+	}
 }
+
